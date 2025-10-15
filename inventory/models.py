@@ -120,8 +120,8 @@ class Order(models.Model):
     ]
     
     VAT_TYPE=[
-        ('Inclusive','Inclusive'),
-        ('Exclusive','Exclusive'),
+            ('Inclusive','Inclusive'),
+            ('Exclusive','Exclusive'),
     ]
 
     customer = models.ForeignKey(CustomerInfo, on_delete=models.SET_NULL, null=True, blank=True)
@@ -253,48 +253,6 @@ def set_order_item_cost(sender, instance, **kwargs):
     """Calculate price before saving the OrderItem instance."""
     instance.cost = instance.get_cost()
 
-@receiver([post_save, post_delete], sender=OrderItem)
-def update_order_total(sender, instance, **kwargs):
-    """Update total amount in Order when an OrderItem is added, updated, or deleted."""
-    order = instance.order
-    order.sub_total = order.get_sub_total_price()
-    if order.receipt == 'Receipt':
-        order.vat = order.sub_total * Decimal('0.15')
-    else:
-        order.vat = 0
-    order.total_amount = order.sub_total + order.vat
-    if order.payment_status == 'Paid':
-        order.paid_amount = order.total_amount
-    else:
-        order.unpaid_amount = order.total_amount - order.paid_amount
-    order.save()
-
-@receiver([post_save, post_delete], sender=OrderItem)
-def update_order_total(sender, instance, **kwargs):
-    """Update total amount in Order when an OrderItem is added, updated, or deleted."""
-    order = instance.order
-    order.sub_total = order.get_sub_total_price()
-    # Update VAT and total_amount here as well:
-    if order.receipt == 'Receipt':
-        order.vat = order.sub_total * Decimal('0.15')
-    else:
-        order.vat = 0
-    order.total_amount = order.sub_total + order.vat
-    if order.payment_status == 'Paid':
-        order.paid_amount = order.total_amount
-    elif order.payment_status == 'Pending':
-        order.unpaid_amount = order.total_amount - order.paid_amount
-    order.save()
-
-@receiver(post_save, sender=Order)
-def update_order_total_on_order_change(sender, instance, **kwargs):
-    total = sum(item.price for item in instance.items.all())
-    instance.sub_total = total
-    if instance.receipt == 'Receipt':
-        instance.vat = total * Decimal('0.15')  # Assuming a VAT rate of 15%
-    else:
-        instance.vat = 0
-    instance.total_amount = total + instance.vat
 
 @receiver(post_save, sender=OrderItem)
 def update_order_status_if_all_items_status_cancelled(sender, instance, **kwargs):
@@ -383,35 +341,32 @@ def update_order_item_pending_count(sender, instance, **kwargs):
     order.save(update_fields=['item_pending', 'status'])
 
 
-
-
-
-
 @receiver([post_save, post_delete], sender=OrderItem)
-def update_order_total_based_vat_type(sender, instance, **kwargs):
-    """Update total amount in Order when an OrderItem is added, updated, or deleted."""
+def update_order_totals(sender, instance, **kwargs):
     order = instance.order
-    
+    order.sub_total = order.get_sub_total_price()
+
+    # Handle VAT and total_amount based on receipt type
     if order.receipt == 'Receipt':
         if order.vat_type == 'Exclusive':
-            order.sub_total = order.get_sub_total_price()
             order.vat = order.sub_total * Decimal('0.15')
             order.total_amount = order.sub_total + order.vat
-            print(order.total_amount)
-            order.save()
         elif order.vat_type == 'Inclusive':
-            order.total_amount = order.get_sub_total_price()
-            order.vat = order.total_amount * Decimal('0.15')
-            order.sub_total = order.total_amount - order.vat
-            order.save()
+            order.total_amount = order.get_sub_total_price()  # Total including VAT
+            order.sub_total = order.total_amount / (1 + Decimal('0.15'))  # Pre-VAT amount
+            order.vat = order.total_amount - order.sub_total  # VAT amount
+        else:
+            order.vat = 0
+            order.total_amount = order.sub_total
     else:
         order.vat = 0
-        order.sub_total = order.get_sub_total_price()
         order.total_amount = order.sub_total
-        order.save()
 
+    # Handle payment status
     if order.payment_status == 'Paid':
         order.paid_amount = order.total_amount
     else:
         order.unpaid_amount = order.total_amount - order.paid_amount
-    order.save()
+
+    # Save only once, with update_fields to avoid unnecessary recalculations
+    order.save(update_fields=['sub_total', 'vat', 'total_amount', 'paid_amount', 'unpaid_amount'])
