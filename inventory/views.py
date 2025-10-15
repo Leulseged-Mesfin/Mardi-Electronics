@@ -15,9 +15,8 @@ import openpyxl
 from .models import (
     Product, Supplier, Order, OrderItem, Category, 
     CustomerInfo, CompanyInfo, OrderLog, Report, ExpenseTypes, 
-    OtherExpenses, PurchaseSupplier, PurchaseExpense, PurchaseProduct, 
-    SupplierPaymentLog, ExpensePaymentLog, OrderPaymentLog, 
-    PerformaCustomer, PerformaPerforma, PerformaProduct
+    OtherExpenses, OrderPaymentLog, 
+
 )
 from .serializers import (
     ProductPostSerializer, 
@@ -34,15 +33,7 @@ from .serializers import (
     ExpenseTypesSerializer,
     OtherExpensesSerializer,
     OtherExpensesGetSerializer,
-    PurchaseSupplierSerializer,
-    PurchaseExpenseSerializer,
-    PurchaseProductSerializer,
-    SupplierPaymentLogSerializer, 
-    ExpensePaymentLogSerializer,
     OrderPaymentLogSerializer,
-    PerformaCustomerSerializer,
-    PerformaPerformaSerializer,
-    PerformaProductSerializer
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters
@@ -1486,207 +1477,6 @@ class ProductsPerSupplierAPIView(APIView):
 
 
 
-
-# Ner Perfoma Views
-
-class PerformaCustomerListCreateView(generics.ListCreateAPIView):
-    queryset = PerformaCustomer.objects.all()
-    serializer_class = PerformaCustomerSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        id = response.data.get('performas')[0]['id']
-        id = str(id).zfill(4)
-        return Response({
-            "message": "Performa Customer created successfully.",
-            "data": response.data,
-            "id": id
-        }, status=status.HTTP_201_CREATED)
-
-class PerformaCustomerDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PerformaCustomer.objects.all()
-    serializer_class = PerformaCustomerSerializer
-
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        id = response.data.get('performas')[-1]['id']
-        id = str(id).zfill(4)
-        return Response({
-            "message": "Performa Customer updated successfully.",
-            "data": response.data,
-            "id": id
-        }, status=status.HTTP_200_OK)
-    
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"message": "Performa Customer Deleted successfully."}, status=status.HTTP_200_OK)
-
-
-class PerformaPerformaListCreateView(generics.ListCreateAPIView):
-    queryset = PerformaPerforma.objects.all()
-    serializer_class = PerformaPerformaSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return Response({
-            "message": "Performa Performa created successfully.",
-            "data": response.data
-        }, status=status.HTTP_201_CREATED)
-
-class PerformaPerformaDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PerformaPerforma.objects.all()
-    serializer_class = PerformaPerformaSerializer
-
-    def get(self, request, *args, **kwargs):
-        response = super().get(request, *args, **kwargs)
-        id = response.data.get('id')
-        id = str(id).zfill(4)
-        return Response({
-            "message": "Performa Performa retrived successfully.",
-            "data": response.data,
-            "id": id
-        }, status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        return Response({
-            "message": "Performa Performa updated successfully.",
-            "data": response.data
-        }, status=status.HTTP_200_OK)
-    
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"message": "Performa Performa Deleted successfully."}, status=status.HTTP_200_OK)
-
-
-class PerformaProductListCreateView(generics.ListCreateAPIView):
-    queryset = PerformaProduct.objects.all()
-    serializer_class = PerformaProductSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return Response({
-            "message": "Performa Product created successfully.",
-            "data": response.data
-        }, status=status.HTTP_201_CREATED)
-
-class PerformaProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PerformaProduct.objects.all()
-    serializer_class = PerformaProductSerializer
-
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        return Response({
-            "message": "Performa Products updated successfully.",
-            "data": response.data
-        }, status=status.HTTP_200_OK)
-    
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"message": "Performa Products Deleted successfully."}, status=status.HTTP_200_OK)
-
-
-# ------------------------------------- Purchase Views --------------------------------------------------
-
-class PurchaseSupplierListCreateView(generics.ListCreateAPIView):
-    queryset = PurchaseSupplier.objects.all()
-    serializer_class = PurchaseSupplierSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return Response({
-            "message": "Purchase Supplier created successfully.",
-            "data": response.data
-        }, status=status.HTTP_201_CREATED)
-
-class PurchaseSupplierDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PurchaseSupplier.objects.all()
-    serializer_class = PurchaseSupplierSerializer
-
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        return Response({
-            "message": "Purchase Supplier updated successfully.",
-            "data": response.data
-        }, status=status.HTTP_200_OK)
-    
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"message": "Purchase Supplier Deleted successfully."}, status=status.HTTP_200_OK)
-
-
-class PurchaseExpenseListCreateView(generics.ListCreateAPIView):
-    queryset = PurchaseExpense.objects.all()
-    serializer_class = PurchaseExpenseSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return Response({
-            "message": "Purchase Expense created successfully.",
-            "data": response.data
-        }, status=status.HTTP_201_CREATED)
-
-class PurchaseExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PurchaseExpense.objects.all()
-    serializer_class = PurchaseExpenseSerializer
-
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        return Response({
-            "message": "Purchase Expenses updated successfully.",
-            "data": response.data
-        }, status=status.HTTP_200_OK)
-    
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"message": "Purchase Expenses Deleted successfully."}, status=status.HTTP_200_OK)
-
-
-class PurchaseProductListCreateView(generics.ListCreateAPIView):
-    queryset = PurchaseProduct.objects.all()
-    serializer_class = PurchaseProductSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return Response({
-            "message": "Purchase Product created successfully.",
-            "data": response.data
-        }, status=status.HTTP_201_CREATED)
-
-class PurchaseProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PurchaseProduct.objects.all()
-    serializer_class = PurchaseProductSerializer
-
-    def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        return Response({
-            "message": "Purchase Products updated successfully.",
-            "data": response.data
-        }, status=status.HTTP_200_OK)
-    
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response({"message": "Purchase Products Deleted successfully."}, status=status.HTTP_200_OK)
-
-
 class SalesPersonDashboardAPIView(APIView):
     def get(self, request):
         try:
@@ -2044,21 +1834,6 @@ class ImportProductExcelAPIView(APIView):
         except Exception as e:
             return Response({"error": f"Failed to import products: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-class SupplierLogListView(generics.ListAPIView):
-    serializer_class = SupplierPaymentLogSerializer
-
-    def get_queryset(self):
-        supplier_id = self.kwargs['supplier_id']
-        return SupplierPaymentLog.objects.filter(supplier_id=supplier_id).order_by('-timestamp')
-
-class ExpenseLogListView(generics.ListAPIView):
-    serializer_class = ExpensePaymentLogSerializer
-
-    def get_queryset(self):
-        expense_id = self.kwargs['expense_id']
-        return ExpensePaymentLog.objects.filter(expense_id=expense_id).order_by('-timestamp')
 
 class OrderLogListView(generics.ListAPIView):
     serializer_class = OrderPaymentLogSerializer

@@ -58,23 +58,7 @@ from .views import (
     OrderItemListCreateView,
     OrderItemDetailView,
 
-    PurchaseExpenseListCreateView,
-    PurchaseExpenseDetailView,
-    PurchaseProductListCreateView,
-    PurchaseProductDetailView,
-    PurchaseSupplierListCreateView,
-    PurchaseSupplierDetailView,
-
-    SupplierLogListView, 
-    ExpenseLogListView,
     OrderLogListView,
-
-    PerformaCustomerListCreateView,
-    PerformaCustomerDetailView,
-    PerformaPerformaListCreateView,
-    PerformaPerformaDetailView,
-    PerformaProductListCreateView,
-    PerformaProductDetailView,
 
 )
 
@@ -117,13 +101,6 @@ urlpatterns = [
 
     path('products_supplier/<pk>', ProductsPerSupplierAPIView.as_view(), name='products-per-supplier'),
 
-    path('purchase-products/', PurchaseProductListCreateView.as_view(), name='purchase-product-list-create'),
-    path('purchase-products/<pk>', PurchaseProductDetailView.as_view(), name='purchase-product-list-create'),
-    path('purchase-expenses/', PurchaseExpenseListCreateView.as_view(), name='purchase-expense-list-create'),
-    path('purchase-expenses/<pk>', PurchaseExpenseDetailView.as_view(), name='purchase-expense-list-create'),
-    path('purchase-suppliers/', PurchaseSupplierListCreateView.as_view(), name='purchase-supplier-list-create'),
-    path('purchase-suppliers/<pk>', PurchaseSupplierDetailView.as_view(), name='purchase-supplier-list-create'),
-
     path('orders/<pk>/receipt/', OrderReceiptAPIView.as_view(), name='order-receipt'),
     path('sales-dashboard/', SalesPersonDashboardAPIView.as_view(), name='salesperson-dashboard'),
     path('recent-orders/', RecentOrderLimitedAPIView.as_view(), name='recent-orders-limited'),
@@ -143,15 +120,5 @@ urlpatterns = [
     path('export/products/', ExportProductExcelAPIView.as_view(), name='export-products-excel'),
     path('import/products/', ImportProductExcelAPIView.as_view(), name='export-products-excel'),
 
-    path('purchase-suppliers/<int:supplier_id>/logs', SupplierLogListView.as_view(), name='purchase-supplier-logs'),
-    path('purchase-expenses/<int:expense_id>/logs', ExpenseLogListView.as_view(), name='purchase-expense-logs'),
     path('orders/<int:order_id>/logs', OrderLogListView.as_view(), name='order-logs'),
-
-
-    path('performa-customers/', PerformaCustomerListCreateView.as_view(), name='performa-customer-list-create'),
-    path('performa-customers/<pk>', PerformaCustomerDetailView.as_view(), name='performa-customer-list-create'),
-    path('performa-performas/', PerformaPerformaListCreateView.as_view(), name='performa-performas-list-create'),
-    path('performa-performas/<pk>', PerformaPerformaDetailView.as_view(), name='performa-performas-list-create'),
-    path('performa-products/', PerformaProductListCreateView.as_view(), name='performa-product-list-create'),
-    path('performa-products/<pk>', PerformaProductDetailView.as_view(), name='performa-product-list-create'),
 ]
