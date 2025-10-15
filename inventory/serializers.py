@@ -457,7 +457,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'customer', 'customer_name', 'customer_fs', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'items', 'user', 'user_email', 'user_role', 'item_pending']
+        fields = ['id', 'customer', 'customer_name', 'customer_fs', 'status', 'receipt', 'receipt_id', 'order_date', 'vat_type', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'items', 'user', 'user_email', 'user_role', 'item_pending']
         extra_kwargs = {
             'total_amount': {'required': False},
             'total_amount': {'read_only': True}, # Make 'total_amount' read-only

@@ -118,6 +118,11 @@ class Order(models.Model):
         ('Unpaid','Unpaid'),
         ('Pending','Pending')
     ]
+    
+    VAT_TYPE=[
+        ('Inclusive','Inclusive'),
+        ('Exclusive','Exclusive'),
+    ]
 
     customer = models.ForeignKey(CustomerInfo, on_delete=models.SET_NULL, null=True, blank=True)
     order_date = models.DateTimeField(auto_now_add=True)
@@ -130,6 +135,7 @@ class Order(models.Model):
     paid_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00, null=True, blank=True)
     unpaid_amount = models.DecimalField(max_digits=20, decimal_places=2, default=0.00, null=True, blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    vat_type = models.CharField(max_length=50, choices=VAT_TYPE, default='Inclusive')
     user = models.CharField(max_length=255, default="User", null=True, blank=True)
     user_email = models.CharField(max_length=255, default="User@gmail.com", null=True, blank=True)
     user_role = models.CharField(max_length=255, default="Salesman", null=True, blank=True)
@@ -375,3 +381,37 @@ def update_order_item_pending_count(sender, instance, **kwargs):
         order.item_pending = 0  # No items at all
 
     order.save(update_fields=['item_pending', 'status'])
+
+
+
+
+
+
+@receiver([post_save, post_delete], sender=OrderItem)
+def update_order_total_based_vat_type(sender, instance, **kwargs):
+    """Update total amount in Order when an OrderItem is added, updated, or deleted."""
+    order = instance.order
+    
+    if order.receipt == 'Receipt':
+        if order.vat_type == 'Exclusive':
+            order.sub_total = order.get_sub_total_price()
+            order.vat = order.sub_total * Decimal('0.15')
+            order.total_amount = order.sub_total + order.vat
+            print(order.total_amount)
+            order.save()
+        elif order.vat_type == 'Inclusive':
+            order.total_amount = order.get_sub_total_price()
+            order.vat = order.total_amount * Decimal('0.15')
+            order.sub_total = order.total_amount - order.vat
+            order.save()
+    else:
+        order.vat = 0
+        order.sub_total = order.get_sub_total_price()
+        order.total_amount = order.sub_total
+        order.save()
+
+    if order.payment_status == 'Paid':
+        order.paid_amount = order.total_amount
+    else:
+        order.unpaid_amount = order.total_amount - order.paid_amount
+    order.save()
