@@ -4,6 +4,7 @@ from django.db.models import Sum, Count
 from rest_framework.response import Response
 from django.http import HttpResponse
 from rest_framework import status, permissions
+from rest_framework.permissions import BasePermission
 from rest_framework.parsers import MultiPartParser
 from django.shortcuts import get_object_or_404
 from django.db.models import F, Sum, ExpressionWrapper, DecimalField
@@ -24,6 +25,7 @@ from .serializers import (
     ProductGetReportSerializer, 
     SupplierSerializer, 
     OrderSerializer, 
+    OrderLightSerializer,
     OrderItemSerializer, 
     CategorySerializer, 
     CustomerInfoSerializer,
@@ -37,9 +39,17 @@ from .serializers import (
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters
-
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from .utils import create_order_log
+
+# ------------------ Pagination ------------------
+class Pagination(PageNumberPagination):
+    page_size = 10  # default items per page
+    page_size_query_param = 'page_size'  # allow client to override
+    max_page_size = 100
+
+
 
 class ProductListCreateAPIView(APIView):
     # permission_classes = (permissions.AllowAny,)
@@ -51,12 +61,42 @@ class ProductListCreateAPIView(APIView):
                     {"error": "You are not authorized to retrive the Product."},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            product = Product.objects.all()
-            # products = Product.objects.all().order_by('id')
-            serializer = ProductGetSerializer(product, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
             
-                      
+
+            search_query = request.query_params.get('search', None)
+            include_all = request.query_params.get('include_all', '').lower() in ('1', 'true', 'yes')
+
+            products = Product.objects.all()
+            
+            # Apply search
+            if search_query:
+                products = products.filter(
+                    Q(name__icontains=search_query)
+                )
+
+            # Ensure consistent ordering for pagination
+            products = products.order_by('-id')  # or '-id'
+
+            # Paginate
+            paginator = Pagination()
+            page = paginator.paginate_queryset(products, request)
+            if page is not None:
+                page_data = ProductGetSerializer(page, many=True).data
+                if include_all:
+                    all_data = ProductGetSerializer(products, many=True).data
+                    return Response({
+                        'count': paginator.page.paginator.count,
+                        'next': paginator.get_next_link(),
+                        'previous': paginator.get_previous_link(),
+                        'results': page_data,
+                        'all_results': all_data,
+                    })
+                return paginator.get_paginated_response(page_data)
+
+            # Fallback - no pagination applied
+            serializer = ProductGetSerializer(products, many=True)
+            return Response(serializer.data)
+              
         except KeyError as e:
             return Response(
                 {"error": f"An error occurred while Retriving the Product.  {str(e)}"},
@@ -361,10 +401,43 @@ class CustomerListCreateAPIView(APIView):
                 return Response(
                     {"error": "You are not authorized to retrive the Customers."},
                     status=status.HTTP_403_FORBIDDEN
-                ) 
-            customer = CustomerInfo.objects.all()
-            serializer = CustomerInfoSerializer(customer, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)      
+                )
+            
+
+            search_query = request.query_params.get('search', None)
+            include_all = request.query_params.get('include_all', '').lower() in ('1', 'true', 'yes')
+
+            customers = CustomerInfo.objects.all()
+            
+            # Apply search
+            if search_query:
+                customers = customers.filter(
+                    Q(name__icontains=search_query)
+                )
+
+            # Ensure consistent ordering for pagination
+            customers = customers.order_by('-id')  # or '-id'
+
+            # Paginate
+            paginator = Pagination()
+            page = paginator.paginate_queryset(customers, request)
+            if page is not None:
+                page_data = CustomerInfoSerializer(page, many=True).data
+                if include_all:
+                    all_data = CustomerInfoSerializer(customers, many=True).data
+                    return Response({
+                        'count': paginator.page.paginator.count,
+                        'next': paginator.get_next_link(),
+                        'previous': paginator.get_previous_link(),
+                        'results': page_data,
+                        'all_results': all_data,
+                    })
+                return paginator.get_paginated_response(page_data)
+
+            # Fallback - no pagination applied
+            serializer = CustomerInfoSerializer(customers, many=True)
+            return Response(serializer.data)
+                  
         except KeyError as e:
             return Response(
                 {"error": f"An error occurred while Retriving the Customers.  {str(e)}"},
@@ -645,15 +718,31 @@ class CompanyRetrieveUpdateDeleteAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-class OrderPagination(PageNumberPagination):
-    page_size = 10  # or whatever you prefer
+
+class OrderPermission(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return user and (getattr(user, "role", None) == "Manager" or user.is_superuser or user.role == 'Salesman' or user.role == 'Sales Manager')
+
 
 class OrderListCreatView(generics.ListCreateAPIView):
     queryset = Order.objects.order_by('-id')
+    permission_classes = [OrderPermission]
     serializer_class = OrderSerializer
-    pagination_class = OrderPagination
+    pagination_class = Pagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['=customer__name', '=payment_status']  # 🔍 allow searching by customer's name and payment status
+
+    def get_queryset(self):
+        # only fetch id, name, email from the DB
+        return Order.objects.only('id', 'customer', 'customer__name', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'user').select_related('customer').order_by('-id')
+
+
+    def get_serializer_class(self):
+        # Use light serializer for list, full serializer for create
+        if self.request.method == 'GET':
+            return OrderLightSerializer
+        return OrderSerializer
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -666,6 +755,7 @@ class OrderListCreatView(generics.ListCreateAPIView):
             "data": response.data,
             "id": id
         }, status=status.HTTP_201_CREATED)
+
 
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
@@ -1050,9 +1140,40 @@ class OrderLogAPIView(APIView):
                     {"error": "You are not authorized to retrive the Order Log."},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            logs = OrderLog.objects.all()
-            serializer = OrderLogSerializer(logs, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            search_query = request.query_params.get('search', None)
+            include_all = request.query_params.get('include_all', '').lower() in ('1', 'true', 'yes')
+
+            order_log = OrderLog.objects.all()
+            
+            # Apply search
+            if search_query:
+                order_log = order_log.filter(
+                    Q(object_id__icontains=search_query)
+                )
+
+            # Ensure consistent ordering for pagination
+            order_log = order_log.order_by('-id')  # or '-id'
+
+            # Paginate
+            paginator = Pagination()
+            page = paginator.paginate_queryset(order_log, request)
+            if page is not None:
+                page_data = OrderLogSerializer(page, many=True).data
+                if include_all:
+                    all_data = OrderLogSerializer(order_log, many=True).data
+                    return Response({
+                        'count': paginator.page.paginator.count,
+                        'next': paginator.get_next_link(),
+                        'previous': paginator.get_previous_link(),
+                        'results': page_data,
+                        'all_results': all_data,
+                    })
+                return paginator.get_paginated_response(page_data)
+
+            # Fallback - no pagination applied
+            serializer = OrderLogSerializer(order_log, many=True)
+            return Response(serializer.data)
 
         except KeyError as e:
             return Response(

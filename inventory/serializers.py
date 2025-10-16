@@ -448,6 +448,16 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
         return instance
 
+class OrderLightSerializer(serializers.ModelSerializer):
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    customer_name = serializers.CharField(source='customer.name', read_only=True)
+    
+
+    class Meta:
+        model = Order
+        fields = ['id', 'customer', 'customer_name', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'user', 'number_of_items']
+
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
     total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
