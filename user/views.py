@@ -8,6 +8,7 @@ from django.contrib.auth.hashers import check_password
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_yasg.utils import swagger_auto_schema
+from django.contrib.auth.models import Permission
 
 
 class UserListCreateAPIView(APIView):
@@ -33,8 +34,22 @@ class UserListCreateAPIView(APIView):
                 # Retrieve all users for non-managers and non-salesman
                 users = User.objects.all()
             # user = User.objects.all()
+
+            # Get permission names for the user's permission IDs
+            permission_ids = user.user_permissions.values_list('id', flat=True)
+            permissions = Permission.objects.filter(id__in=permission_ids)
+            permission_data = [
+                {'id': perm.id, 'name': perm.name, 'codename': perm.codename}
+                for perm in permissions
+            ]
             serializer = UserSerializer(users, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            # Add permissions to the response
+            response_data = {
+                'data': serializer.data,
+                'permissions': permission_data
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
                 
         except:
             return Response(
@@ -184,21 +199,31 @@ class UserRetrieveUpdateDeleteAPIView(APIView):
         
 
 class UserProfileView(APIView):
-    # permission_classes = (permissions.AllowAny,)
     def get(self, request, format=None):
         try:
             user = request.user
-            users = UserSerializer(user)
-            
-            return Response(
-                {'data': users.data},
-                status=status.HTTP_200_OK
-            )
+            serializer = UserSerializer(user)
 
-        except KeyError as e:
+            # Get permission names for the user's permission IDs
+            permission_ids = user.user_permissions.values_list('id', flat=True)
+            permissions = Permission.objects.filter(id__in=permission_ids)
+            permission_data = [
+                {'id': perm.id, 'name': perm.name, 'codename': perm.codename}
+                for perm in permissions
+            ]
+
+            # Add permissions to the response
+            response_data = {
+                'data': serializer.data,
+                'permissions': permission_data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
             return Response(
-                {"error": f"An error occurred while retriving Profile. {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR               
+                {"error": f"An error occurred while retrieving the profile: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     def patch(self, request, format=None):

@@ -59,9 +59,9 @@ class ProductGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'category_name', 'description', 'package', 'piece', 'unit', 'buying_price', 'selling_price', 'receipt_no', 'color_code', 'stock', 'supplier_name', 'image', 'user']
+        fields = ['id', 'name', 'category_name', 'description', 'package', 'piece', 'unit', 'buying_price', 'selling_price', 'receipt_no', 'specification', 'stock', 'supplier_name', 'image', 'user']
         constraints = [
-            UniqueConstraint(fields=['name', 'category_name', 'color_code'], name='unique_product_category_color_code')
+            UniqueConstraint(fields=['name', 'category_name', 'specification'], name='unique_product_category_specification')
         ]
 
 class ProductPostSerializer(serializers.ModelSerializer):
@@ -70,14 +70,14 @@ class ProductPostSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
         constraints = [
-            UniqueConstraint(fields=['name', 'category', 'color_code'], name='unique_product_category_color_code')
+            UniqueConstraint(fields=['name', 'category', 'specification'], name='unique_product_category_specification')
         ]
     
     def validate(self, attrs):
         name = attrs.get('name')
         category = attrs.get('category')
-        color_code = attrs.get('color_code')
-        if Product.objects.filter(name=name, category=category, color_code=color_code).exists():
+        specification = attrs.get('specification')
+        if Product.objects.filter(name=name, category=category, specification=specification).exists():
             raise serializers.ValidationError(
                 {"error": "A product with this name, category and color code already exists."}
             )

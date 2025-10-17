@@ -61,7 +61,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(verbose_name='email', max_length=255, unique=True)
     name = models.CharField(max_length=255)  
-    role = models.CharField(max_length=20, choices=user_roles, null=False, blank=False)
+    role = models.CharField(max_length=20, choices=user_roles, null=True, blank=True)
     address = models.CharField(max_length=255, null=True,blank=True)
     mobile = models.CharField(max_length=255, null=True,blank=True)
     is_active = models.BooleanField(default=True)    

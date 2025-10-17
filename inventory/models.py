@@ -50,6 +50,7 @@ class Supplier(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=200, blank=False, null=False)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    specification = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     package = models.IntegerField(null=True, blank=True)
     piece = models.IntegerField(null=True, blank=True)
