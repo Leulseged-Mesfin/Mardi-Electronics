@@ -371,3 +371,13 @@ def update_order_totals(sender, instance, **kwargs):
 
     # Save only once, with update_fields to avoid unnecessary recalculations
     order.save(update_fields=['sub_total', 'vat', 'total_amount', 'paid_amount', 'unpaid_amount'])
+
+
+@receiver([post_save, post_delete], sender=OrderItem)
+def update_order_item_count(sender, instance, **kwargs):
+    order = instance.order
+    items = order.items.all()
+    items_count = items.all().count()
+    order.number_of_items = items_count
+    order.save(update_fields=['number_of_items'])
+
