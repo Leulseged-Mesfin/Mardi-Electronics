@@ -322,8 +322,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
                     elif package is None:
                         # Calculate the remaining stock and adjust the package count
                         remaining_stock = product.stock - quantity_difference
-                        remaining_packages = remaining_stock // piece  # Calculate remaining packages
-                        product.package = remaining_packages
+                        # remaining_packages = remaining_stock // piece  # Calculate remaining packages
+                        # product.package = remaining_packages
                         product.stock = remaining_stock
                         if product.receipt_no is not None:
                             product.receipt_no -= quantity_difference
