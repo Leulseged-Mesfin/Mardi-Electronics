@@ -107,8 +107,8 @@ class ProductPostSerializer(serializers.ModelSerializer):
 
 
     def update(self, instance, validated_data):
-        update_package = validated_data.pop('package', None) # Get the number of boxes to add
-        piece = validated_data.pop('piece', instance.piece) # Get the number of strips to add
+        update_package = validated_data.pop('package', None) # Get the number of packages to add
+        piece = validated_data.pop('piece', instance.piece) # Get the number of pieces to add
         update_stocks = validated_data.pop('stock', None)  # Get the
 
         # Stock and selling price update log
@@ -116,6 +116,8 @@ class ProductPostSerializer(serializers.ModelSerializer):
         old_stock = instance.stock
         new_selling_price = validated_data.get('selling_price')
         new_stock = validated_data.get('stock')
+
+        print(new_stock, update_stocks, old_stock)
         
         validated_data['piece'] = piece
 
@@ -123,12 +125,12 @@ class ProductPostSerializer(serializers.ModelSerializer):
             update_package = None
 
     
-       # Calculate stock if boxes are provided
+       # Calculate stock if packages are provided
         if update_package is not None:
-            # Calculate stock based on strips and boxes
+            # Calculate stock based on strips and packages
             # piece = instance.piece  # Get the current strips per box
             if instance.package is not None:
-                update_package = instance.package + update_package  # Update boxes per carton
+                update_package = instance.package + update_package  # Update packages per carton
                 stock_quantity = piece * update_package
                 module_stock = instance.stock % piece
                 stock = stock_quantity + module_stock
@@ -137,25 +139,25 @@ class ProductPostSerializer(serializers.ModelSerializer):
                   raise serializers.ValidationError({"error": "stock can't be negative"})
                 validated_data['stock'] = stock  # Update the stock in validated_data
                 # 🔍 Log changes
-                if new_selling_price is not None and new_selling_price != old_selling_price:
-                    ProductLog.objects.create(
-                        product=instance,
-                        change_type="Selling Price Change",
-                        field_name="Selling Price",
-                        old_value=old_selling_price,
-                        new_value=new_selling_price,
-                        user=instance.user  # Optional if available
-                    )
+                # if new_selling_price is not None and new_selling_price != old_selling_price:
+                #     ProductLog.objects.create(
+                #         product=instance,
+                #         change_type="Selling Price Change",
+                #         field_name="Selling Price",
+                #         old_value=old_selling_price,
+                #         new_value=new_selling_price,
+                #         user=instance.user  # Optional if available
+                #     )
 
-                if new_stock is not None and new_stock != old_stock:
-                    ProductLog.objects.create(
-                        product=instance,
-                        change_type="Stock Update",
-                        field_name="Stock",
-                        old_value=old_stock,
-                        new_value=new_stock,
-                        user=instance.user
-                    )
+                # if new_stock is not None and new_stock != old_stock:
+                #     ProductLog.objects.create(
+                #         product=instance,
+                #         change_type="Stock Update",
+                #         field_name="Stock",
+                #         old_value=old_stock,
+                #         new_value=new_stock,
+                #         user=instance.user
+                #     )
             else:
                 stock_quantity = piece * update_package
                 module_stock = instance.stock % piece
@@ -165,25 +167,25 @@ class ProductPostSerializer(serializers.ModelSerializer):
                   raise serializers.ValidationError({"error": "stock can't be negative"})
                 validated_data['stock'] = stock  # Update the stock in validated_data
                 # 🔍 Log changes
-                if new_selling_price is not None and new_selling_price != old_selling_price:
-                    ProductLog.objects.create(
-                        product=instance,
-                        change_type="Selling Price Change",
-                        field_name="Selling Price",
-                        old_value=old_selling_price,
-                        new_value=new_selling_price,
-                        user=instance.user  # Optional if available
-                    )
+                # if new_selling_price is not None and new_selling_price != old_selling_price:
+                #     ProductLog.objects.create(
+                #         product=instance,
+                #         change_type="Selling Price Change",
+                #         field_name="Selling Price",
+                #         old_value=old_selling_price,
+                #         new_value=new_selling_price,
+                #         user=instance.user  # Optional if available
+                #     )
 
-                if new_stock is not None and new_stock != old_stock:
-                    ProductLog.objects.create(
-                        product=instance,
-                        change_type="Stock Update",
-                        field_name="Stock",
-                        old_value=old_stock,
-                        new_value=new_stock,
-                        user=instance.user
-                    )
+                # if new_stock is not None and new_stock != old_stock:
+                #     ProductLog.objects.create(
+                #         product=instance,
+                #         change_type="Stock Update",
+                #         field_name="Stock",
+                #         old_value=old_stock,
+                #         new_value=new_stock,
+                #         user=instance.user
+                #     )
            
         elif update_stocks is not None and instance.stock is not None:
             # If update_stocks is provided, update the stock directly
@@ -583,7 +585,7 @@ class OrderLightSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'customer', 'customer_name', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'user', 'number_of_items']
+        fields = ['id', 'customer', 'customer_name', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'credit', 'unpaid_amount', 'user', 'number_of_items']
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -595,7 +597,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'customer', 'customer_name', 'customer_fs', 'status', 'receipt', 'receipt_id', 'order_date', 'vat_type', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'items', 'user', 'user_email', 'user_role', 'item_pending']
+        fields = ['id', 'customer', 'customer_name', 'customer_fs', 'status', 'receipt', 'receipt_id', 'order_date', 'vat_type', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'credit', 'items', 'user', 'user_email', 'user_role', 'item_pending']
         extra_kwargs = {
             'total_amount': {'required': False},
             'total_amount': {'read_only': True}, # Make 'total_amount' read-only
