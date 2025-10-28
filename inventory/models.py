@@ -137,6 +137,7 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     vat_type = models.CharField(max_length=50, choices=VAT_TYPE, default='Inclusive')
     number_of_items = models.IntegerField(null=True, blank=True)
+    credit = models.BooleanField(default=False, null=True, blank=True)
     user = models.CharField(max_length=255, default="User", null=True, blank=True)
     user_email = models.CharField(max_length=255, default="User@gmail.com", null=True, blank=True)
     user_role = models.CharField(max_length=255, default="Salesman", null=True, blank=True)
@@ -234,6 +235,16 @@ class OtherExpenses(models.Model):
 class OrderPaymentLog(models.Model):
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, related_name='logs', null=True, blank=True)
     customer = models.CharField(max_length=255, null=True, blank=True, default="Customer")
+    change_type = models.CharField(max_length=255)
+    field_name = models.CharField(max_length=100)
+    old_value = models.CharField(max_length=255, null=True, blank=True)
+    new_value = models.CharField(max_length=255, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    user = models.CharField(max_length=255, null=True, blank=True)
+
+
+class ProductLog(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, related_name='logs', null=True, blank=True)
     change_type = models.CharField(max_length=255)
     field_name = models.CharField(max_length=100)
     old_value = models.CharField(max_length=255, null=True, blank=True)

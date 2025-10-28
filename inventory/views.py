@@ -16,7 +16,7 @@ import openpyxl
 from .models import (
     Product, Supplier, Order, OrderItem, Category, 
     CustomerInfo, CompanyInfo, OrderLog, Report, ExpenseTypes, 
-    OtherExpenses, OrderPaymentLog, 
+    OtherExpenses, OrderPaymentLog, ProductLog 
 
 )
 from .serializers import (
@@ -36,6 +36,7 @@ from .serializers import (
     OtherExpensesSerializer,
     OtherExpensesGetSerializer,
     OrderPaymentLogSerializer,
+    ProductLogSerializer
 )
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters
@@ -1962,3 +1963,24 @@ class OrderLogListView(generics.ListAPIView):
     def get_queryset(self):
         order_id = self.kwargs['order_id']
         return OrderPaymentLog.objects.filter(order_id=order_id).order_by('-timestamp')
+
+
+class ProductLogAPIView(APIView):
+    def get(self, request):
+        try:
+            user = request.user
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman'):
+                return Response(
+                    {"error": "You are not authorized to retrive the Product Log."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            log = ProductLog.objects.all()
+            serializer = ProductLogSerializer(log, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except KeyError as e:
+            return Response(
+                {"error": f"An error occurred while Retriving the Product Log.  {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    

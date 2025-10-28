@@ -68,32 +68,3 @@ def update_payment_status_on_new_expense_or_product(supplier, expense=None, new_
 
     return updated
 
-
-
-# def update_payment_status_on_new_order_item(order, new_items=None):
-#     if new_items and order.payment_status == 'Paid':
-#         order.payment_status = 'Pending'
-#         order.save(update_fields=['payment_status'])
-
-# def update_payment_status_on_new_order_item(order, new_items=None):
-#     """
-#     Updates the order's payment status to Pending if new items are added to a Paid order.
-#     Returns True if status was changed, False otherwise.
-#     """
-#     if new_items and order.payment_status == 'Paid':
-#         order.payment_status = 'Pending'
-#         order.save(update_fields=['payment_status', 'updated_at'])
-        
-#         # Log the status change
-#         OrderPaymentLog.objects.create(
-#             order=order,
-#             customer=order.customer,
-#             change_type="Status Change",
-#             field_name="payment_status",
-#             old_value='Paid',
-#             new_value='Pending',
-#             user=order.user if hasattr(order, 'user') else None,
-#             notes="Status changed due to addition of new order items"
-#         )
-#         return True
-#     return False

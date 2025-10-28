@@ -17,6 +17,7 @@ from rest_framework import response
 # import django_heroku
 from dotenv import load_dotenv
 # import dj_database_url
+# from middleware import NoCacheMiddleware
 
  # Load environment variables from .env file
 load_dotenv()
@@ -63,6 +64,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # 👇 Add this line
+    'main_project.middleware.NoCacheMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [

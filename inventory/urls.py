@@ -59,6 +59,7 @@ from .views import (
     OrderItemDetailView,
 
     OrderLogListView,
+    ProductLogAPIView
 
 )
 
@@ -121,4 +122,5 @@ urlpatterns = [
     path('import/products/', ImportProductExcelAPIView.as_view(), name='export-products-excel'),
 
     path('orders/<int:order_id>/logs', OrderLogListView.as_view(), name='order-logs'),
+    path('product_log/', ProductLogAPIView.as_view(), name='product-log-retrieve'),
 ]
