@@ -727,7 +727,7 @@ class OrderPermission(BasePermission):
 
 
 class OrderListCreatView(generics.ListCreateAPIView):
-    queryset = Order.objects.order_by('-id')
+    queryset = Order.objects.filter(credit=False).order_by('-id')
     permission_classes = [OrderPermission]
     serializer_class = OrderSerializer
     pagination_class = Pagination
@@ -736,7 +736,7 @@ class OrderListCreatView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         # only fetch id, name, email from the DB
-        return Order.objects.only('id', 'customer', 'customer__name', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'user').select_related('customer').order_by('-id')
+        return Order.objects.only('id', 'customer', 'customer__name', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'credit', 'user').select_related('customer').filter(credit=False).order_by('-id')
 
 
     def get_serializer_class(self):
@@ -783,7 +783,7 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Response({"message": "Order Deleted successfully."}, status=status.HTTP_200_OK)
 
 class OrderItemListCreateView(generics.ListCreateAPIView):
-    queryset = OrderItem.objects.order_by('id')
+    queryset = OrderItem.objects.filter(order__credit=False).order_by('id')
     serializer_class = OrderItemSerializer
 
     def create(self, request, *args, **kwargs):
@@ -807,6 +807,30 @@ class OrderItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
         return Response({"message": "Order Item Deleted successfully."}, status=status.HTTP_200_OK)
+
+
+class OrderCreditListAPIView(generics.ListAPIView):
+    queryset = Order.objects.filter(credit=True).order_by('-id')
+    permission_classes = [OrderPermission]
+    serializer_class = OrderLightSerializer
+    pagination_class = Pagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['=customer__name', '=payment_status']  # 🔍 allow searching by customer's name and payment status
+
+    def get_queryset(self):
+        # only fetch id, name, email from the DB
+        return Order.objects.only('id', 'customer', 'customer__name', 'status', 'receipt', 'receipt_id', 'order_date', 'sub_total', 'vat',  'total_amount', 'payment_status', 'paid_amount', 'unpaid_amount', 'credit', 'user').select_related('customer').filter(credit=True).order_by('-id')
+
+
+
+class OrderItemCreditListView(generics.ListAPIView):
+    queryset = OrderItem.objects.filter(order__credit=True).order_by('id')
+    serializer_class = OrderItemSerializer
+
+    # def get_queryset(self):
+    #     # only fetch id, name, email from the DB
+    #     return OrderItem.objects.only('id', 'order', 'product', 'product_price', 'product__name', 'item_receipt', 'package', 'unit', 'quantity', 'unit_price', 'price', 'status').select_related('order', 'product').filter(order__credit=True).order_by('id')
+
 
 
 class CategoryListCreateAPIView(APIView):

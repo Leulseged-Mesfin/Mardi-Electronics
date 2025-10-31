@@ -364,6 +364,7 @@ def update_order_totals(sender, instance, **kwargs):
             order.vat = order.sub_total * Decimal('0.15')
             order.total_amount = order.sub_total + order.vat
         elif order.vat_type == 'Inclusive':
+            print("This is It.")
             order.total_amount = order.get_sub_total_price()  # Total including VAT
             order.sub_total = order.total_amount / (1 + Decimal('0.15'))  # Pre-VAT amount
             order.vat = order.total_amount - order.sub_total  # VAT amount

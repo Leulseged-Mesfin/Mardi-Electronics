@@ -57,6 +57,8 @@ from .views import (
     OrderDetailView,
     OrderItemListCreateView,
     OrderItemDetailView,
+    OrderCreditListAPIView,
+    OrderItemCreditListView,
 
     OrderLogListView,
     ProductLogAPIView
@@ -76,6 +78,8 @@ urlpatterns = [
     path('orderitems', OrderItemListCreateView.as_view(), name='orders-items-list'),
     path('orderitems/<pk>', OrderItemDetailView.as_view(), name='orders-items-retrieve'),
 
+    path('orders-credit', OrderCreditListAPIView.as_view(), name='orders-credit-list'),
+    path('orderitems-credit', OrderItemCreditListView.as_view(), name='orders-credit-items-list'),
     path('customers', CustomerListCreateAPIView.as_view(), name='customers-list'),
     path('customers/<pk>', CustomerRetrieveUpdateDeleteAPIView.as_view(), name='customers-retrieve'),
     
