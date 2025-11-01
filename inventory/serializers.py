@@ -326,7 +326,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'order', 'product', 'product_price', 'product_name', 'item_receipt', 'package', 'unit', 'quantity', 'unit_price', 'price', 'status']
+        fields = ['id', 'order', 'product', 'product_price', 'product_name', 'product_specification', 'item_receipt', 'package', 'unit', 'quantity', 'unit_price', 'price', 'status']
         extra_kwargs = {
             'order': {'required': False},  # Make 'order' optional in the request
             'price': {'read_only': True}, # Make 'price' read-only if calculated
@@ -473,8 +473,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
                     elif package is None:
                         # Calculate the remaining stock and adjust the package count
                         remaining_stock = product.stock - quantity_difference
-                        remaining_packages = remaining_stock // piece  # Calculate remaining packages
-                        product.package = remaining_packages
+                        # remaining_packages = remaining_stock // piece  # Calculate remaining packages
+                        # product.package = remaining_packages
                         product.stock = remaining_stock
                         product.save()  # Save the product instance
                     

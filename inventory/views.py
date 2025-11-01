@@ -107,7 +107,7 @@ class ProductListCreateAPIView(APIView):
     def post(self, request, format=None):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to create the Product."},
                     status=status.HTTP_403_FORBIDDEN
@@ -144,7 +144,7 @@ class ProductRetrieveUpdateDeleteAPIView(APIView):
     def get(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to retrive the Product."},
                     status=status.HTTP_403_FORBIDDEN
@@ -165,7 +165,7 @@ class ProductRetrieveUpdateDeleteAPIView(APIView):
     def put(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to update the Product."},
                     status=status.HTTP_403_FORBIDDEN
@@ -192,7 +192,7 @@ class ProductRetrieveUpdateDeleteAPIView(APIView):
     def patch(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to update the Product."},
                     status=status.HTTP_403_FORBIDDEN
@@ -216,7 +216,7 @@ class ProductRetrieveUpdateDeleteAPIView(APIView):
     def delete(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to delete the Product."},
                     status=status.HTTP_403_FORBIDDEN
@@ -838,7 +838,7 @@ class CategoryListCreateAPIView(APIView):
     def get(self, request, format=None):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman'):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to retrive the Category."},
                     status=status.HTTP_403_FORBIDDEN
@@ -857,7 +857,7 @@ class CategoryListCreateAPIView(APIView):
     def post(self, request, format=None):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to create the Category."},
                     status=status.HTTP_403_FORBIDDEN
@@ -883,7 +883,7 @@ class CategoryRetrieveUpdateDeleteAPIView(APIView):
     def get(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman'):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to retrive the Category."},
                     status=status.HTTP_403_FORBIDDEN
@@ -905,7 +905,7 @@ class CategoryRetrieveUpdateDeleteAPIView(APIView):
     def put(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to update the Category."},
                     status=status.HTTP_403_FORBIDDEN
@@ -931,7 +931,7 @@ class CategoryRetrieveUpdateDeleteAPIView(APIView):
     def patch(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to update the Category."},
                     status=status.HTTP_403_FORBIDDEN
@@ -956,7 +956,7 @@ class CategoryRetrieveUpdateDeleteAPIView(APIView):
     def delete(self, request, pk):
         try:
             user = request.user
-            if not (user.role == 'Manager' or user.is_superuser == True):
+            if not (user.role == 'Manager' or user.is_superuser == True or user.role == 'Salesman' or user.role == 'Sales Manager'):
                 return Response(
                     {"error": "You are not authorized to delete the Category."},
                     status=status.HTTP_403_FORBIDDEN
